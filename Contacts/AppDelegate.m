@@ -8,7 +8,6 @@
 
 #import "AppDelegate.h"
 #import "ViewController.h"
-#import "AddContactsViewController.h"
 
 @interface AppDelegate ()
 
@@ -24,8 +23,6 @@
     // Override point for customization after application launch.
     self.window.backgroundColor = [UIColor whiteColor];
     self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:[[ViewController alloc] init]];
-    
-   // self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:[[AddContactsViewController alloc] initWithNibName:@"AddContactsViewController" bundle:nil]];
     
     [self.window makeKeyAndVisible];
     return YES;

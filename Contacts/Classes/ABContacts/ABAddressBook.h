@@ -1,5 +1,5 @@
 //
-//  AddressBook.h
+//  ABAddressBook.h
 //  Contacts
 //
 //  Created by emma on 15/6/25.
@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-@interface AddressBook : NSObject {
+@interface ABAddressBook : NSObject {
     NSInteger sectionNumber;
     NSInteger recordID;
     BOOL rowSelected;

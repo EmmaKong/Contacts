@@ -91,38 +91,6 @@
             endingLineNumber = "140"
             landmarkName = "-addnewcontact:"
             landmarkType = "5">
-            <Locations>
-               <Location
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "-[ViewController addnewcontact:]"
-                  moduleName = "Contacts"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/emma/Documents/Contact-master/Contacts/Contacts/ViewController.m"
-                  timestampString = "457328222.662593"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "141"
-                  endingLineNumber = "141"
-                  offsetFromSymbolStart = "1810">
-               </Location>
-               <Location
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "-[ViewController addnewcontact:]"
-                  moduleName = "Contacts"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/emma/Documents/Contact-master/Contacts/Contacts/ViewController.m"
-                  timestampString = "457328222.662709"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "141"
-                  endingLineNumber = "141"
-                  offsetFromSymbolStart = "1891">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -133,6 +101,22 @@
             continueAfterRunningActions = "No"
             filePath = "Contacts/ABContacts/AddressBookViewController.m"
             timestampString = "457328222.066482"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "64"
+            endingLineNumber = "64"
+            landmarkName = "-viewDidLoad"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Contacts/Classes/ABContacts/AddressBookViewController.m"
+            timestampString = "457363224.301194"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "64"

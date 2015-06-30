@@ -11,9 +11,9 @@
 #import <AddressBook/AddressBook.h>
 #import <AddressBookUI/AddressBookUI.h>
 #import <malloc/malloc.h>
-#import "AddressBook.h"
+#import "ABAddressBook.h"
 
-@class AddressBook, AddressBookViewController;
+@class ABAddressBook, AddressBookViewController;
 @protocol AddressBookViewControllerDelegate <NSObject>
 @required
 

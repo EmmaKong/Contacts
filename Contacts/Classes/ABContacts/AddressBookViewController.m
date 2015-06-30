@@ -65,7 +65,7 @@
     
     for (NSInteger i = 0; i < nPeople; i++)
     {
-        AddressBook *addressBook = [[AddressBook alloc] init];
+        ABAddressBook *addressBook = [[ABAddressBook alloc] init];
         ABRecordRef person = CFArrayGetValueAtIndex(allPeople, i);
         CFStringRef abName = ABRecordCopyValue(person, kABPersonFirstNameProperty);
         CFStringRef abLastName = ABRecordCopyValue(person, kABPersonLastNameProperty);
@@ -133,7 +133,7 @@
     
     // Sort data
     UILocalizedIndexedCollation *theCollation = [UILocalizedIndexedCollation currentCollation];
-    for (AddressBook *addressBook in addressBookTemp) {
+    for (ABAddressBook *addressBook in addressBookTemp) {
         NSInteger sect = [theCollation sectionForObject:addressBook
                                 collationStringSelector:@selector(name)];
         addressBook.sectionNumber = sect;
@@ -146,7 +146,7 @@
         [sectionArrays addObject:sectionArray];
     }
     
-    for (AddressBook *addressBook in addressBookTemp) {
+    for (ABAddressBook *addressBook in addressBookTemp) {
         [(NSMutableArray *)[sectionArrays objectAtIndex:addressBook.sectionNumber] addObject:addressBook];
     }
     
@@ -235,11 +235,11 @@
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
     }
     
-    AddressBook *addressBook = nil;
+    ABAddressBook *addressBook = nil;
     if (tableView == self.searchDisplayController.searchResultsTableView)
-        addressBook = (AddressBook *)[_filteredListContent objectAtIndex:indexPath.row];
+        addressBook = (ABAddressBook *)[_filteredListContent objectAtIndex:indexPath.row];
     else
-        addressBook = (AddressBook *)[[_listContent objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
+        addressBook = (ABAddressBook *)[[_listContent objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
     
     if ([[addressBook.name stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] length] > 0) {
         cell.textLabel.text = addressBook.name;
@@ -276,12 +276,12 @@
 
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath
 {
-    AddressBook *addressBook = nil;
+    ABAddressBook *addressBook = nil;
     
     if (tableView == self.searchDisplayController.searchResultsTableView)
-        addressBook = (AddressBook*)[_filteredListContent objectAtIndex:indexPath.row];
+        addressBook = (ABAddressBook*)[_filteredListContent objectAtIndex:indexPath.row];
     else
-        addressBook = (AddressBook*)[[_listContent objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
+        addressBook = (ABAddressBook*)[[_listContent objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
     
     BOOL checked = !addressBook.rowSelected;
     addressBook.rowSelected = checked;
@@ -368,7 +368,7 @@
 {
     [_filteredListContent removeAllObjects];
     for (NSArray *section in _listContent) {
-        for (AddressBook *addressBook in section)
+        for (ABAddressBook *addressBook in section)
         {
             NSComparisonResult result = [addressBook.name compare:searchText options:(NSCaseInsensitiveSearch|NSDiacriticInsensitiveSearch) range:NSMakeRange(0, [searchText length])];
             if (result == NSOrderedSame)

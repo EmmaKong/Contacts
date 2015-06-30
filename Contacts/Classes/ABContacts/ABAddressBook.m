@@ -1,14 +1,14 @@
 //
-//  AddressBook.m
+//  ABAddressBook.m
 //  Contacts
 //
 //  Created by emma on 15/6/25.
 //  Copyright (c) 2015年 Emma. All rights reserved.
 //
 
-#import "AddressBook.h"
+#import "ABAddressBook.h"
 
-@implementation AddressBook
+@implementation ABAddressBook
 @synthesize name, email, tel, thumbnail, recordID, sectionNumber, rowSelected;
 
 

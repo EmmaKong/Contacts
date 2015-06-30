@@ -12,7 +12,6 @@
 #import "ContactDetailViewController.h"
 #import "ChineseInclude.h"
 #import "PinYinForObjc.h"
-#import "AddressBookViewController.h"
 
 @implementation AddContactsViewController
 
@@ -36,7 +35,6 @@
     
     [self performSelector:@selector(loadrecomendsDatas) withObject:nil afterDelay:0.5];
     
-
 }
 
 - (void)_initLayout
@@ -59,8 +57,6 @@
     self.recomended.dataSource = self;
     self.recomended.tableHeaderView = newcontactsSearchBar;
     [self.view addSubview:self.recomended];
-    
-    
     
 }
 
@@ -148,7 +144,6 @@
         static NSString *CellIdentifier = @"CellIdentifier";
         
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-        
         if (cell == nil) {
             cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier: CellIdentifier];
         }
@@ -184,9 +179,7 @@
 // cell上的 添加课程按钮, 响应事件,  搜索结果中的cell
 - (void)searchAddbtnClick:(UIButton *)Btn
 {
-    
     Contacts *newcontact = newsearchResults[Btn.tag];
-    
     //第一步注册通知
     [[NSNotificationCenter defaultCenter]postNotificationName:@"addcontactNotification" object:newcontact];
     
@@ -221,7 +214,7 @@
 
 }
 
-/*设置标题尾的宽度*/
+//设置标题尾的宽度
 -(CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section
 {
     return 0.01;
@@ -248,11 +241,13 @@
          if(indexPath.row == 0){
              
              AddressBookViewController *ABviewcontroller = [[AddressBookViewController alloc] initWithNibName:@"AddressBookViewController" bundle:nil];
-             
+             ABviewcontroller.delegate = self;
              [self.navigationController pushViewController:ABviewcontroller animated:YES];
          }
         if (indexPath.row == 1){
             NSLog(@"weichat");
+            
+            
         }
     }
     else {

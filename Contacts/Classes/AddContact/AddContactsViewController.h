@@ -9,8 +9,9 @@
 #import <UIKit/UIKit.h>
 #import "Contacts.h"
 #import "RecomendsCell.h"
+#import "AddressBookViewController.h"
 
-@interface AddContactsViewController : UIViewController<RecomendsCellDelegate,UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate>
+@interface AddContactsViewController : UIViewController<RecomendsCellDelegate,UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, AddressBookViewControllerDelegate>
 {
     NSMutableArray *newsearchResults;
     UISearchDisplayController *newsearchDisplayController;
@@ -21,7 +22,6 @@
 
 
 @property (weak, nonatomic) IBOutlet UITableView *recomended;
-
 
 @property (nonatomic, retain) NSMutableArray   *recomendsArray;
 
