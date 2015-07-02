@@ -20,9 +20,10 @@
 @interface ViewController ()<ContactsTableViewDelegate>
 
 @property (nonatomic, strong) ContactsTableView *contactTableView;
-@property (nonatomic, strong) NSMutableArray * dataSource;  // 设为可变是为了方便添加和删除数据
-
-
+@property (nonatomic, strong) NSMutableArray *contactArraytemp; //从数据库读取的contacts数据
+@property (nonatomic, strong) NSMutableArray *allArray;  // 包含空数据的contactsArray
+@property (nonatomic, strong) NSMutableArray *dataSource;  // 核心数据
+@property (nonatomic, strong) NSMutableArray *indexTitles;
 
 @end
 
@@ -46,16 +47,24 @@
     [self.view addSubview:self.contactTableView];
 }
 
+- (void) reloadTableView {
+    self.contactTableView = [[ContactsTableView alloc] initWithFrame:CGRectMake(0, 64, self.view.bounds.size.width, self.view.bounds.size.height-64)];
+    self.contactTableView.delegate = self;
+    self.contactTableView.tableView.tableHeaderView = contactsSearchBar;
+    [self.view addSubview:self.contactTableView];
+}
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.title = @"联系人";
     
     self.dataSource = [[NSMutableArray alloc] init];
+    self.contactArraytemp = [[NSMutableArray alloc] init];
+    self.allArray = [[NSMutableArray alloc] init];
     // Do any additional setup after loading the view, typically from a nib.
     
     contactsSearchBar = [[UISearchBar alloc]initWithFrame:CGRectMake(0, 64, self.view.bounds.size.width, 40)];
     contactsSearchBar.delegate = self;
-    [contactsSearchBar setPlaceholder:@"搜索"];
+    [contactsSearchBar setPlaceholder:@"搜索联系人"];
     contactsSearchBar.keyboardType = UIKeyboardTypeDefault;
     searchDisplayController = [[UISearchDisplayController alloc]initWithSearchBar:contactsSearchBar contentsController:self];
     searchDisplayController.active = NO;
@@ -78,17 +87,59 @@
     
     // 添加通知中心, 添加联系人
     [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(addnewcontact:) name:@"addcontactNotification" object:nil];
+    
+
 }
 
 - (void)loadLocalData
 {
 
-    NSString *contactsPath = [[NSBundle mainBundle] pathForResource:@"contacts" ofType:@"json"];
-    NSData *data = [[NSData alloc] initWithContentsOfFile:contactsPath];
-    //解析
-    NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
-    self.dataSource = [dict objectForKey:@"data"];
+    // json数据解析
+    NSString *contactPath = [[NSBundle mainBundle] pathForResource:@"contacts1" ofType:@"json"];
+    NSData *data = [NSData dataWithContentsOfFile:contactPath];
+    NSArray *array = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
     
+    self.contactArraytemp = [[NSMutableArray alloc] init];
+    for (int i = 0; i < array.count; i++) {
+        Contacts *contact = [[Contacts alloc] initWithPropertiesDictionary:array[i]];
+        [self.contactArraytemp addObject:contact];
+    }
+    
+    
+    // 对数据进行排序，并按首字母分类
+    UILocalizedIndexedCollation *theCollation = [UILocalizedIndexedCollation currentCollation];
+    for (Contacts *contact in self.contactArraytemp) {
+        NSInteger sect = [theCollation sectionForObject:contact
+                                collationStringSelector:@selector(name)];
+        contact.sectionNumber = sect;
+        
+    }
+    
+    NSInteger highSection = [[theCollation sectionTitles] count];
+    NSMutableArray *sectionArrays = [NSMutableArray arrayWithCapacity:highSection];
+    for (int i=0; i<=highSection; i++) {
+        NSMutableArray *sectionArray = [NSMutableArray arrayWithCapacity:1];
+        [sectionArrays addObject:sectionArray];
+    }
+    
+    for (Contacts *contact in self.contactArraytemp) {
+        [(NSMutableArray *)[sectionArrays objectAtIndex:contact.sectionNumber] addObject:contact];
+    }
+    
+    self.allArray = [[NSMutableArray alloc] init];
+    for (NSMutableArray *sectionArray in sectionArrays) {
+        NSArray *sortedSection = [theCollation sortedArrayFromArray:sectionArray collationStringSelector:@selector(name)];
+        [self.allArray addObject:sortedSection];
+    }
+    
+    // 只取有数据的Array
+    for (NSMutableArray *sectionArray0 in self.allArray) {
+        if (sectionArray0.count) {
+            [self.dataSource addObject:sectionArray0];
+        }
+    
+    }
+
 }
 
 
@@ -113,105 +164,53 @@
     Contacts *newcontact = notification.object;
     NSString *name = newcontact.name;
     
-    NSString *tempPinYinname = [PinYinForObjc chineseConvertToPinYin:newcontact.name];
-    NSLog(@"%@",[[tempPinYinname capitalizedString] substringToIndex:1]);
-
-    NSMutableArray *source = self.dataSource;
-   // "#" 的ascii 码：35
+    NSLog(@"添加联系人%@",name);
     
-    // 首字母在section中 已存在
-    for (int i = 0; i < self.dataSource.count; i++) {
-        
-        // 首字母在A～Z范围内
-        if ( [[[tempPinYinname capitalizedString] substringToIndex:1] compare:@"A"] == 1 && [[[tempPinYinname capitalizedString] substringToIndex:1] compare:@"Z"] == -1){
-             //首字母已存在
-            if([[tempPinYinname capitalizedString] hasPrefix:self.dataSource[i][@"indexTitle"]]) {
-            
-                NSMutableArray *sectioncontacts = self.dataSource[i][@"data"];
-                NSMutableArray *temparray = [[NSMutableArray alloc] init];
-                [temparray addObjectsFromArray:sectioncontacts];
-            
-                // NSDictionary *dic = @{@"name":newcontact.name};
-                NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithObjectsAndKeys:newcontact.name,@"name",nil];
-                [temparray addObject:dic];
-               // self.dataSource[i][@"data"] = temparray;
-                source[i][@"data"] = temparray;
-            
-            
-            }else if([self.dataSource[self.dataSource.count-1][@"indexTitle"] isEqualToString:@"#"] &&  i < self.dataSource.count-1 && ([ self.dataSource[i][@"indexTitle"] compare:[[tempPinYinname capitalizedString] substringToIndex:1]] == -1) && ([self.dataSource[i+1][@"indexTitle"] compare:[[tempPinYinname capitalizedString] substringToIndex:1]] == 1))
-            {
-            
-//                //self.dataSource[i+1] = nil;
-//                for(int j = self.dataSource.count; j < i+1; j--){
-//             
-//                    self.dataSource[j] = self.dataSource[j-1];
-//                }
-//                // 插入一个section
-               
-                NSMutableArray *temparray0 = [[NSMutableArray alloc] init];
-                NSMutableDictionary *dic0 = [NSMutableDictionary dictionaryWithObjectsAndKeys:newcontact.name,@"name",nil];
-                [temparray0 addObject:dic0];
-                
-               // NSMutableArray *temparraydata = [[NSMutableArray alloc] init];
-                NSMutableDictionary *dicdata = [NSMutableDictionary dictionaryWithObjectsAndKeys:temparray0,@"data",nil];
-               // [temparraydata addObject:dicdata];
-                
-                NSMutableArray *temparray = [[NSMutableArray alloc] init];
-                NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithObjectsAndKeys:[[tempPinYinname capitalizedString] substringToIndex:1],@"Index",nil];
-                [temparray addObject:dicdata];
-                [temparray addObject:dic];
-                
-                [self.dataSource insertObject:temparray atIndex:i];  //????
-               
+    [self.contactArraytemp addObject:newcontact];
     
-            
-            }
-            else if( ![self.dataSource[self.dataSource.count-1][@"indexTitle"] isEqualToString:@"#"]  && ([ self.dataSource[i][@"indexTitle"] compare:[[tempPinYinname capitalizedString] substringToIndex:1]] == -1)
-                    && ([self.dataSource[i+1][@"indexTitle"] compare:[[tempPinYinname capitalizedString] substringToIndex:1]] == 1))
-            {
-                
-                
-                
-            
-            }
-            else if(![self.dataSource[self.dataSource.count-1][@"indexTitle"] isEqualToString:@"#"] &&  ([self.dataSource[self.dataSource.count-1][@"indexTitle"] compare:[[tempPinYinname capitalizedString] substringToIndex:1]] == -1))
-            {
-                
-                
-                
-            }
+    // 数据更新
+    self.dataSource = [[NSMutableArray alloc] init];
+    self.allArray = [[NSMutableArray alloc] init];
+    UILocalizedIndexedCollation *theCollation = [UILocalizedIndexedCollation currentCollation];
+    for (Contacts *contact in self.contactArraytemp) {
+        NSInteger sect = [theCollation sectionForObject:contact
+                                collationStringSelector:@selector(name)];
+        contact.sectionNumber = sect;
         
-        }else if( [self.dataSource[self.dataSource.count-1][@"indexTitle"] isEqualToString:@"#"] ){  // 首字母为特殊字符, 且原数据中存在特殊字符, 插入
-            
-            NSMutableArray *sectioncontacts = self.dataSource[self.dataSource.count-1][@"data"];
-            NSMutableArray *temparray = [[NSMutableArray alloc] init];
-            [temparray addObjectsFromArray:sectioncontacts];
-            NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithObjectsAndKeys:newcontact.name,@"name",nil];
-            [temparray addObject:dic];
-            
-            self.dataSource[self.dataSource.count-1] = temparray;
-            
-            
-        }
-        else{  // 首字母为特殊字符, 且原数据中m没有特殊字符
-            
-            NSMutableArray *temparray = [[NSMutableArray alloc] init];
-            NSMutableDictionary *dic = [NSMutableDictionary dictionaryWithObjectsAndKeys:newcontact.name,@"name",nil];
-            [temparray addObject:dic];
-            
-            
-            
-        }
     }
     
+    NSInteger highSection = [[theCollation sectionTitles] count];
+    NSMutableArray *sectionArrays = [NSMutableArray arrayWithCapacity:highSection];
+    for (int i=0; i<=highSection; i++) {
+        NSMutableArray *sectionArray = [NSMutableArray arrayWithCapacity:1];
+        [sectionArrays addObject:sectionArray];
+    }
     
+    for (Contacts *contact in self.contactArraytemp) {
+        [(NSMutableArray *)[sectionArrays objectAtIndex:contact.sectionNumber] addObject:contact];
+    }
     
+    self.allArray = [[NSMutableArray alloc] init];
+    for (NSMutableArray *sectionArray in sectionArrays) {
+        NSArray *sortedSection = [theCollation sortedArrayFromArray:sectionArray collationStringSelector:@selector(name)];
+        [self.allArray addObject:sortedSection];
+    }
+    
+    // 只取有数据的Array
+    for (NSMutableArray *sectionArray0 in self.allArray) {
+        if (sectionArray0.count) {
+            [self.dataSource addObject:sectionArray0];
+        }
+        
+    }
+     [self reloadTableView];
     
 }
 
 
 
-#pragma mark - UITableViewDataSource
+//#pragma mark - UITableViewDataSource
+// IndexTable
 - (NSArray *) sectionIndexTitlesForABELTableView:(ContactsTableView *)tableView
 {
     if (tableView == searchDisplayController.searchResultsTableView)
@@ -219,13 +218,18 @@
         return nil;
     }
     else{
-        NSMutableArray * indexTitles = [NSMutableArray array];
-        for (NSDictionary * sectionDictionary in self.dataSource) {
-            [indexTitles addObject:sectionDictionary[@"indexTitle"]];
-        }
-        return indexTitles;
+        self.indexTitles = [NSMutableArray array];
         
+        for (int i = 0; i < self.allArray.count; i++) {
+            if ([[self.allArray objectAtIndex:i] count]) {
+                [self.indexTitles addObject:[[[UILocalizedIndexedCollation currentCollation] sectionTitles] objectAtIndex:i]];
+            }
+        }
+        
+        return self.indexTitles;
+
     }
+    
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
@@ -235,7 +239,8 @@
         return nil;
     }
     else{
-        return self.dataSource[section][@"indexTitle"];
+       
+        return [self.indexTitles objectAtIndex:section];
     }
 }
 
@@ -246,7 +251,9 @@
     }
     else{
         return self.dataSource.count;
+        
     }
+    
 }
 
 - (NSInteger) tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -255,8 +262,9 @@
         return searchResults.count;
     }
     else{
-        return [self.dataSource[section][@"data"] count];
+        return [[self.dataSource objectAtIndex:section] count];
     }
+    
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -283,11 +291,7 @@
     }
     else {
         
-        NSDictionary *Dict = self.dataSource[indexPath.section];
-        NSArray *sectioncontacts = [Dict objectForKey:@"data"];
-        NSMutableDictionary *contacts = [NSMutableDictionary dictionaryWithDictionary:sectioncontacts[indexPath.row]];
-        Contacts *contact = [[Contacts alloc] initWithPropertiesDictionary:contacts];
-        
+        Contacts *contact = (Contacts *)[[self.dataSource objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
         NSString *nametext = [NSString stringWithFormat:@"%@",contact.name];
         
         cell.tag = indexPath.row;
@@ -316,10 +320,8 @@
         contactdetail.contact = searchResults[indexPath.row];
     }
     else {
-        NSDictionary *Dict = self.dataSource[indexPath.section];
-        NSArray *sectioncontacts = [Dict objectForKey:@"data"];
-        NSMutableDictionary *contacts = [NSMutableDictionary dictionaryWithDictionary:sectioncontacts[indexPath.row]];
-        contactdetail.contact = [[Contacts alloc] initWithPropertiesDictionary:contacts];
+        
+        contactdetail.contact = (Contacts *)[[self.dataSource objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
         
         
     }
@@ -329,79 +331,60 @@
 
 // 联系人搜索，可实现汉字搜索，汉语拼音搜索和拼音首字母搜索，
 // 输入联系人名称，进行搜索， 返回搜索结果searchResults
-#pragma UISearchDisplayDelegate
 - (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText
 {
-    
-    searchResults = [[NSMutableArray alloc]init];
-    if (contactsSearchBar.text.length>0&&![ChineseInclude isIncludeChineseInString:contactsSearchBar.text])
-    {
-        for (int i = 0; i< self.dataSource.count; i++)
-        {  // i —— indexpath.section
-            NSDictionary *initialDict = self.dataSource[i];
-            NSArray *initialcontacts = [initialDict objectForKey:@"data"];
-          //  NSString *index = [initialDict objectForKey:@"indexTitle"];   // A B C D ...
-            for(int j = 0; j < initialcontacts.count; j++)
-            {  // j ——— indexpath.row
-                NSMutableDictionary *tempcontact = [NSMutableDictionary dictionaryWithDictionary:initialcontacts[j]];
-              //  [tempcontact setObject:index forKey:@"indexTitle"];
-                Contacts *contact = [[Contacts alloc] initWithPropertiesDictionary:tempcontact];
-                if ([ChineseInclude isIncludeChineseInString:contact.name])
-                {
+     searchResults = [[NSMutableArray alloc]init];
+    if (contactsSearchBar.text.length>0&&![ChineseInclude isIncludeChineseInString:contactsSearchBar.text]) {
+        for (NSArray *section in self.dataSource) {
+            for (Contacts *contact in section)
+            {
+                
+                if ([ChineseInclude isIncludeChineseInString:contact.name]) {
                     NSString *tempPinYinStr = [PinYinForObjc chineseConvertToPinYin:contact.name];
                     NSRange titleResult=[tempPinYinStr rangeOfString:contactsSearchBar.text options:NSCaseInsensitiveSearch];
-                
-                    if (titleResult.length>0)
-                    {
-                    [searchResults addObject:contact];
+                    
+                    if (titleResult.length>0) {
+                        [searchResults addObject:contact];
                     }
-                    else
-                    {
+                    else {
                         NSString *tempPinYinHeadStr = [PinYinForObjc chineseConvertToPinYinHead:contact.name];
                         NSRange titleHeadResult=[tempPinYinHeadStr rangeOfString:contactsSearchBar.text options:NSCaseInsensitiveSearch];
-                        if (titleHeadResult.length>0)
-                        {
-                        [searchResults addObject:contact];
+                        if (titleHeadResult.length>0) {
+                            [searchResults  addObject:contact];
                         }
                     }
                     NSString *tempPinYinHeadStr = [PinYinForObjc chineseConvertToPinYinHead:contact.name];
                     NSRange titleHeadResult=[tempPinYinHeadStr rangeOfString:contactsSearchBar.text options:NSCaseInsensitiveSearch];
                     if (titleHeadResult.length>0) {
-                    [searchResults addObject:contact];
+                        [searchResults  addObject:contact];
                     }
                 }
                 else {
                     NSRange titleResult=[contact.name rangeOfString:contactsSearchBar.text options:NSCaseInsensitiveSearch];
-                    if (titleResult.length>0)
-                    {
-                    [searchResults addObject:contact]; // 搜索结果
+                    if (titleResult.length>0) {
+                        [searchResults  addObject:contact];
                     }
                 }
             }
         }
-    }
-    else if (contactsSearchBar.text.length>0&&[ChineseInclude isIncludeChineseInString:contactsSearchBar.text])  // 有中文输入
-    {
+    } else if (contactsSearchBar.text.length>0&&[ChineseInclude isIncludeChineseInString:contactsSearchBar.text]) {
         
-        for (int i = 0; i< self.dataSource.count; i++)
-        {  // i —— indexpath.section
-            NSDictionary *initialDict = self.dataSource[i];
-            NSArray *initialcontacts = [initialDict objectForKey:@"data"];
-            for(int j = 0; j < initialcontacts.count; j++)
-            {  // j ——— indexpath.row
-                NSMutableDictionary *tempcontact = [NSMutableDictionary dictionaryWithDictionary:initialcontacts[j]];
-                Contacts *contact = [[Contacts alloc] initWithPropertiesDictionary:tempcontact];
-                
+        for (NSArray *section in self.dataSource) {
+            for (Contacts *contact in section)
+            {
                 NSString *tempStr = contact.name;
                 NSRange titleResult=[tempStr rangeOfString:contactsSearchBar.text options:NSCaseInsensitiveSearch];
-                if (titleResult.length>0){
-                     [searchResults addObject:contact]; // 搜索结果
+                if (titleResult.length>0) {
+                    [searchResults addObject:contact];
                 }
+                
             }
         }
-        
     }
+    
 }
+
+
 
 
 // searchbar 点击上浮，完毕复原
@@ -422,6 +405,7 @@
     }];
     return YES;
 }
+
 
 
 

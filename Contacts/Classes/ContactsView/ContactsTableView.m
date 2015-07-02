@@ -11,7 +11,6 @@
 
 @interface ContactsTableView()<ContactsTableViewIndexDelegate>
 
-@property (nonatomic, strong) UILabel * flotageLabel;
 @property (nonatomic, strong) ContactsTableViewIndex * tableViewIndex;
 
 @end
@@ -29,15 +28,9 @@
         self.tableView.showsVerticalScrollIndicator = NO;
         [self addSubview:self.tableView];
         
-        self.tableViewIndex = [[ContactsTableViewIndex alloc] initWithFrame:(CGRect){self.bounds.size.width - 20, 0, 20, frame.size.height}];
+        self.tableViewIndex = [[ContactsTableViewIndex alloc] initWithFrame:(CGRect){self.bounds.size.width - 20, 0, 20, frame.size.height-0}];
         [self addSubview:self.tableViewIndex];
         
-        self.flotageLabel = [[UILabel alloc] initWithFrame:(CGRect){(self.bounds.size.width - 64 ) / 2,(self.bounds.size.height - 64) / 2,64,64}];
-        self.flotageLabel.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"flotageBackgroud"]];
-        self.flotageLabel.hidden = YES;
-        self.flotageLabel.textAlignment = NSTextAlignmentCenter;
-        self.flotageLabel.textColor = [UIColor whiteColor];
-        [self addSubview:self.flotageLabel];
     }
     return self;
 }
@@ -71,20 +64,20 @@
 }
 
 
-#pragma mark -
+//#pragma mark -
 - (void)tableViewIndex:(ContactsTableViewIndex *)tableViewIndex didSelectSectionAtIndex:(NSInteger)index withTitle:(NSString *)title
 {
-    if ([self.tableView numberOfSections] > index && index > -1){   // for safety, should always be YES
+    if ([self.tableView numberOfSections] > index && index > -1){
+        
         [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:index]
                               atScrollPosition:UITableViewScrollPositionTop
                                       animated:NO];
-        self.flotageLabel.text = title;
     }
+
 }
 
 - (void)tableViewIndexTouchesBegan:(ContactsTableViewIndex *)tableViewIndex
 {
-    self.flotageLabel.hidden = NO;
 }
 
 - (void)tableViewIndexTouchesEnd:(ContactsTableViewIndex *)tableViewIndex
@@ -92,9 +85,8 @@
     CATransition *animation = [CATransition animation];
     animation.type = kCATransitionFade;
     animation.duration = 0.4;
-    [self.flotageLabel.layer addAnimation:animation forKey:nil];
     
-    self.flotageLabel.hidden = YES;
+   
 }
 
 - (NSArray *)tableViewIndexTitle:(ContactsTableViewIndex *)tableViewIndex

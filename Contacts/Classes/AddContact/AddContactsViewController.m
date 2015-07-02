@@ -13,6 +13,7 @@
 #import "ChineseInclude.h"
 #import "PinYinForObjc.h"
 
+
 @implementation AddContactsViewController
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -243,7 +244,8 @@
              AddressBookViewController *ABviewcontroller = [[AddressBookViewController alloc] initWithNibName:@"AddressBookViewController" bundle:nil];
              ABviewcontroller.delegate = self;
              [self.navigationController pushViewController:ABviewcontroller animated:YES];
-         }
+             
+        }
         if (indexPath.row == 1){
             NSLog(@"weichat");
             
@@ -256,8 +258,8 @@
         [self.navigationController pushViewController:contactdetail animated:YES];
     }
     
-    
 }
+
 
 #pragma UISearchDisplayDelegate
 - (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {

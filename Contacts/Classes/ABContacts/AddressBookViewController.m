@@ -9,6 +9,9 @@
 #import "AddressBookViewController.h"
 #import "NSString+TKUtilities.h"
 #import "UIImage+TKUtilities.h"
+#import "ChineseInclude.h"
+#import "PinYinForObjc.h"
+#import "Contacts.h"
 
 @interface AddressBookViewController ()
 
@@ -20,14 +23,13 @@
 @synthesize savedSearchTerm = _savedSearchTerm;
 @synthesize savedScopeButtonIndex = _savedScopeButtonIndex;
 @synthesize searchWasActive = _searchWasActive;
-@synthesize ABsearchBar = _ABsearchBar;
+//@synthesize ABsearchBar = _ABsearchBar;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     if (self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil]) {
-        _selectedCount = 0;
         _listContent = [NSMutableArray new];
-        _filteredListContent = [NSMutableArray new];
+
     }
     return self;
 }
@@ -38,19 +40,19 @@
     self.title = @"通讯录朋友";
     
     
-    //ABSearchBar = [[UISearchBar alloc]initWithFrame:CGRectMake(0, 64, self.view.bounds.size.width, 40)];
-    //ABSearchBar.delegate = self;
-    [self.ABsearchBar setPlaceholder:@"搜索"];
-    self.ABsearchBar.keyboardType = UIKeyboardTypeDefault;
+    ABsearchBar = [[UISearchBar alloc]initWithFrame:CGRectMake(0, 64, self.view.bounds.size.width, 40)];
+    ABsearchBar.delegate = self;
+    [ABsearchBar setPlaceholder:@"搜索"];
+    ABsearchBar.keyboardType = UIKeyboardTypeDefault;
     
-    ABsearchDisplayController = [[UISearchDisplayController alloc]initWithSearchBar:self.ABsearchBar contentsController:self];
+    ABsearchDisplayController = [[UISearchDisplayController alloc]initWithSearchBar:ABsearchBar contentsController:self];
     ABsearchDisplayController.active = NO;
     ABsearchDisplayController.searchResultsDataSource = self;
     ABsearchDisplayController.searchResultsDelegate = self;
     
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
-   // self.tableView.tableHeaderView = ABSearchBar;
+    self.tableView.tableHeaderView = ABsearchBar;
     
     [self.view addSubview:self.tableView];
 
@@ -59,6 +61,15 @@
     NSMutableArray *addressBookTemp = [NSMutableArray array];
     CFErrorRef error = NULL;
     ABAddressBookRef addressBooks = ABAddressBookCreateWithOptions(NULL, &error);
+    
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);//发出访问通讯录的请求
+    ABAddressBookRequestAccessWithCompletion(addressBooks, ^(bool granted, CFErrorRef error) {
+            dispatch_semaphore_signal(sema);
+        });
+        
+    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    
+
     CFArrayRef allPeople = ABAddressBookCopyArrayOfAllPeople(addressBooks);
     CFIndex nPeople = ABAddressBookGetPersonCount(addressBooks);
     
@@ -86,11 +97,11 @@
         
         addressBook.name = nameString;
         addressBook.recordID = (int)ABRecordGetRecordID(person);;
-        addressBook.rowSelected = NO;
+        addressBook.rowSelected = NO;   // addressbook 某一行是否被选中
         
         ABPropertyID multiProperties[] = {
-            kABPersonPhoneProperty,
-            kABPersonEmailProperty
+            kABPersonPhoneProperty,  // 电话
+            kABPersonEmailProperty   // 邮件
         };
         NSInteger multiPropertiesTotal = sizeof(multiProperties) / sizeof(ABPropertyID);
         for (NSInteger j = 0; j < multiPropertiesTotal; j++) {
@@ -131,12 +142,13 @@
     CFRelease(allPeople);
     CFRelease(addressBooks);
     
-    // Sort data
+    // 对数据进行排序，并按首字母分类
     UILocalizedIndexedCollation *theCollation = [UILocalizedIndexedCollation currentCollation];
     for (ABAddressBook *addressBook in addressBookTemp) {
         NSInteger sect = [theCollation sectionForObject:addressBook
                                 collationStringSelector:@selector(name)];
         addressBook.sectionNumber = sect;
+        
     }
     
     NSInteger highSection = [[theCollation sectionTitles] count];
@@ -166,15 +178,16 @@
 #pragma mark -
 #pragma mark UITableViewDataSource & UITableViewDelegate
 
-- (NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView
-{
-    if (tableView == self.searchDisplayController.searchResultsTableView) {
-        return nil;
-    } else {
-        return [[NSArray arrayWithObject:UITableViewIndexSearch] arrayByAddingObjectsFromArray:
-                [[UILocalizedIndexedCollation currentCollation] sectionIndexTitles]];
-    }
-}
+//  首字母 索引，title
+//- (NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView
+//{
+//    if (tableView == self.searchDisplayController.searchResultsTableView) {
+//        return nil;
+//    } else {
+//        return [[NSArray arrayWithObject:UITableViewIndexSearch] arrayByAddingObjectsFromArray:
+//                [[UILocalizedIndexedCollation currentCollation] sectionIndexTitles]];
+//    }
+//}
 
 - (NSInteger)tableView:(UITableView *)tableView sectionForSectionIndexTitle:(NSString *)title atIndex:(NSInteger)index
 {
@@ -226,8 +239,9 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    static NSString *kCustomCellID = @"ContactCell";
+    static NSString *kCustomCellID = @"ControllerCell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:kCustomCellID];
+    
     if (cell == nil)
     {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:kCustomCellID];
@@ -248,12 +262,14 @@
         cell.textLabel.text = @"No Name";
     }
     
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-    [button setFrame:CGRectMake(30.0, 0.0, 28, 28)];
-   // [button setBackgroundImage:[UIImage imageNamed:@"uncheckBox.png"] forState:UIControlStateNormal];
-   // [button setBackgroundImage:[UIImage imageNamed:@"checkBox.png"] forState:UIControlStateSelected];
-    [button addTarget:self action:@selector(checkButtonTapped:event:) forControlEvents:UIControlEventTouchUpInside];
-    [button setSelected:addressBook.rowSelected];
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    [button setFrame:CGRectMake(30.0, 0.0, 40, 28)];
+    button.titleLabel.font = [UIFont systemFontOfSize:15.0f];
+    button.titleLabel.textAlignment = NSTextAlignmentCenter;
+    button.tag = indexPath.row;
+    [button setTitle:@"添加" forState:UIControlStateNormal];
+
+    [button addTarget:self action:@selector(AddButtonTapped:event:) forControlEvents:UIControlEventTouchUpInside];
     
     cell.accessoryView = button;
     
@@ -269,9 +285,11 @@
     else {
         [self tableView:self.tableView accessoryButtonTappedForRowWithIndexPath:indexPath];
         [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+        
+        
+    
     }
     
-    [self.navigationItem.rightBarButtonItem setEnabled:(_selectedCount > 0)];
 }
 
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath
@@ -286,10 +304,6 @@
     BOOL checked = !addressBook.rowSelected;
     addressBook.rowSelected = checked;
     
-    // Enabled rightButtonItem
-    if (checked) _selectedCount++;
-    else _selectedCount--;
-    [self.navigationItem.rightBarButtonItem setEnabled:(_selectedCount > 0 ? YES : NO)];
     
     UITableViewCell *cell =[self.tableView cellForRowAtIndexPath:indexPath];
     UIButton *button = (UIButton *)cell.accessoryView;
@@ -301,8 +315,18 @@
     }
 }
 
-- (void)checkButtonTapped:(id)sender event:(id)event
+- (void)AddButtonTapped:(UIButton *)Btn event:(id)event
 {
+    
+    ABAddressBook *addressbook = _listContent[Btn.tag];
+    //第一步注册通知
+    Contacts *newcontact = [[Contacts alloc] init];
+    
+    newcontact.name = addressbook.name;
+    newcontact.sectionNumber = addressbook.sectionNumber;
+    
+    [[NSNotificationCenter defaultCenter]postNotificationName:@"addcontactNotification" object:newcontact];
+    
     NSSet *touches = [event allTouches];
     UITouch *touch = [touches anyObject];
     CGPoint currentTouchPosition = [touch locationInView:self.tableView];
@@ -341,61 +365,63 @@
 //        [self dismissViewControllerAnimated:YES completion:nil];
 //}
 
-#pragma mark -
-#pragma mark UISearchBarDelegate
+//#pragma UISearchDisplayDelegate
 
-- (void)searchBarTextDidBeginEditing:(UISearchBar *)_searchBar
+- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText
 {
-    [self.searchDisplayController.searchBar setShowsCancelButton:NO];
-}
+    _filteredListContent = [[NSMutableArray alloc]init];
 
-- (void)searchBarCancelButtonClicked:(UISearchBar *)_searchBar
-{
-    [self.searchDisplayController setActive:NO animated:YES];
-    [self.tableView reloadData];
-}
-
-- (void)searchBarSearchButtonClicked:(UISearchBar *)_searchBar
-{
-    [self.searchDisplayController setActive:NO animated:YES];
-    [self.tableView reloadData];
-}
-
-#pragma mark -
-#pragma mark ContentFiltering
-
-- (void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)scope
-{
-    [_filteredListContent removeAllObjects];
-    for (NSArray *section in _listContent) {
-        for (ABAddressBook *addressBook in section)
-        {
-            NSComparisonResult result = [addressBook.name compare:searchText options:(NSCaseInsensitiveSearch|NSDiacriticInsensitiveSearch) range:NSMakeRange(0, [searchText length])];
-            if (result == NSOrderedSame)
+    if (ABsearchBar.text.length>0&&![ChineseInclude isIncludeChineseInString:ABsearchBar.text]) {
+        for (NSArray *section in _listContent) {
+            for (ABAddressBook *addressBook in section)
             {
-                [_filteredListContent addObject:addressBook];
+
+                if ([ChineseInclude isIncludeChineseInString:addressBook.name]) {
+                    NSString *tempPinYinStr = [PinYinForObjc chineseConvertToPinYin:addressBook.name];
+                    NSRange titleResult=[tempPinYinStr rangeOfString:ABsearchBar.text options:NSCaseInsensitiveSearch];
+                
+                    if (titleResult.length>0) {
+                        [_filteredListContent  addObject:addressBook];
+                    }
+                    else {
+                        NSString *tempPinYinHeadStr = [PinYinForObjc chineseConvertToPinYinHead:addressBook.name];
+                        NSRange titleHeadResult=[tempPinYinHeadStr rangeOfString:ABsearchBar.text options:NSCaseInsensitiveSearch];
+                        if (titleHeadResult.length>0) {
+                            [_filteredListContent  addObject:addressBook];
+                        }
+                    }
+                    NSString *tempPinYinHeadStr = [PinYinForObjc chineseConvertToPinYinHead:addressBook.name];
+                    NSRange titleHeadResult=[tempPinYinHeadStr rangeOfString:ABsearchBar.text options:NSCaseInsensitiveSearch];
+                    if (titleHeadResult.length>0) {
+                        [_filteredListContent  addObject:addressBook];
+                    }
+                }
+                else {
+                    NSRange titleResult=[addressBook.name rangeOfString:ABsearchBar.text options:NSCaseInsensitiveSearch];
+                    if (titleResult.length>0) {
+                        [_filteredListContent  addObject:addressBook];
+                    }
+                }
+            }
+        }
+    } else if (ABsearchBar.text.length>0&&[ChineseInclude isIncludeChineseInString:ABsearchBar.text]) {
+        
+        for (NSArray *section in _listContent) {
+            for (ABAddressBook *addressBook in section)
+            {
+        
+                NSString *tempStr = addressBook.name;
+                NSRange titleResult=[tempStr rangeOfString:ABsearchBar.text options:NSCaseInsensitiveSearch];
+                if (titleResult.length>0) {
+                    [_filteredListContent addObject:addressBook];
+                }
+            
             }
         }
     }
-}
-
-#pragma mark -
-#pragma mark UISearchDisplayControllerDelegate
-
-- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString
-{
-    [self filterContentForSearchText:searchString scope:
-     [[self.searchDisplayController.searchBar scopeButtonTitles] objectAtIndex:[self.searchDisplayController.searchBar selectedScopeButtonIndex]]];
     
-    return YES;
 }
 
-- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchScope:(NSInteger)searchOption
-{
-    [self filterContentForSearchText:[self.searchDisplayController.searchBar text] scope:
-     [[self.searchDisplayController.searchBar scopeButtonTitles] objectAtIndex:searchOption]];
-    
-    return YES;
-}
+
 
 @end

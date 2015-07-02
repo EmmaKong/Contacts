@@ -115,13 +115,13 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Contacts/Classes/ABContacts/AddressBookViewController.m"
-            timestampString = "457363224.301194"
+            filePath = "Contacts/Classes/ContactsView/ViewController.m"
+            timestampString = "457499978.794234"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "64"
-            endingLineNumber = "64"
-            landmarkName = "-viewDidLoad"
+            startingLineNumber = "335"
+            endingLineNumber = "335"
+            landmarkName = "-searchBar:textDidChange:"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>

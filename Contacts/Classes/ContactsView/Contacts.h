@@ -15,6 +15,7 @@
 @property (nonatomic, copy) UIImage    *headimage;
 @property (nonatomic, copy) NSString     *address;
 @property (nonatomic, copy) NSString     *detail;
+@property NSInteger sectionNumber;  // Index
 
 
 - (id)initWithPropertiesDictionary:(NSDictionary *)dic;

@@ -12,7 +12,6 @@
 		B50357EA1B3C2A230068C867 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B50357E91B3C2A230068C867 /* QuartzCore.framework */; };
 		B50358201B3CF9470068C867 /* note_bg.png in Resources */ = {isa = PBXBuildFile; fileRef = B503581F1B3CF9470068C867 /* note_bg.png */; };
 		B55AA70A1B40EB70009E46A1 /* contacts1.json in Resources */ = {isa = PBXBuildFile; fileRef = B55AA7091B40EB70009E46A1 /* contacts1.json */; };
-		B56592671B33D6920088EEEE /* contacts.json in Resources */ = {isa = PBXBuildFile; fileRef = B56592651B33D6920088EEEE /* contacts.json */; };
 		B56592681B33D6920088EEEE /* touxiang1.png in Resources */ = {isa = PBXBuildFile; fileRef = B56592661B33D6920088EEEE /* touxiang1.png */; };
 		B56592731B3407830088EEEE /* recomends.json in Resources */ = {isa = PBXBuildFile; fileRef = B56592721B3407830088EEEE /* recomends.json */; };
 		B565927C1B340CFB0088EEEE /* touxiang2.png in Resources */ = {isa = PBXBuildFile; fileRef = B565927B1B340CFB0088EEEE /* touxiang2.png */; };
@@ -73,7 +72,6 @@
 		B50357E91B3C2A230068C867 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		B503581F1B3CF9470068C867 /* note_bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = note_bg.png; sourceTree = "<group>"; };
 		B55AA7091B40EB70009E46A1 /* contacts1.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = contacts1.json; sourceTree = "<group>"; };
-		B56592651B33D6920088EEEE /* contacts.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = contacts.json; sourceTree = "<group>"; };
 		B56592661B33D6920088EEEE /* touxiang1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = touxiang1.png; sourceTree = "<group>"; };
 		B56592721B3407830088EEEE /* recomends.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = recomends.json; sourceTree = "<group>"; };
 		B565927B1B340CFB0088EEEE /* touxiang2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = touxiang2.png; sourceTree = "<group>"; };
@@ -177,7 +175,6 @@
 			isa = PBXGroup;
 			children = (
 				B55AA7091B40EB70009E46A1 /* contacts1.json */,
-				B56592651B33D6920088EEEE /* contacts.json */,
 				B56592721B3407830088EEEE /* recomends.json */,
 				B56592661B33D6920088EEEE /* touxiang1.png */,
 				B565927B1B340CFB0088EEEE /* touxiang2.png */,
@@ -461,7 +458,6 @@
 				B5A3BD5A1B42CDDE0007E604 /* unicode_to_hanyu_pinyin.txt in Resources */,
 				B5A3BD4E1B42CDDE0007E604 /* ContactCell.xib in Resources */,
 				B59715FB1B32B6E8006DCCA9 /* LaunchScreen.xib in Resources */,
-				B56592671B33D6920088EEEE /* contacts.json in Resources */,
 				B56592681B33D6920088EEEE /* touxiang1.png in Resources */,
 				B59715F81B32B6E8006DCCA9 /* Images.xcassets in Resources */,
 			);

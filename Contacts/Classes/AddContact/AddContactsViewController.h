@@ -25,4 +25,5 @@
 
 @property (nonatomic, retain) NSMutableArray   *recomendsArray;
 
+
 @end

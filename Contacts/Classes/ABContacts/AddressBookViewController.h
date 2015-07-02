@@ -17,24 +17,24 @@
 @protocol AddressBookViewControllerDelegate <NSObject>
 @required
 
-//- (void)contactsMultiPickerController:(AddressBookViewController*)picker didFinishPickingDataWithInfo:(NSArray*)data;
-//- (void)contactsMultiPickerControllerDidCancel:(AddressBookViewController*)picker;
+
 @end
 
 
 @interface AddressBookViewController : UIViewController <UITableViewDataSource, UITableViewDelegate, UISearchDisplayDelegate, UISearchBarDelegate>
 {
+    id _delegate;
+    
     NSUInteger _selectedCount;
-    NSMutableArray *_listContent;
-    NSMutableArray *_filteredListContent;
-   // UISearchBar *ABSearchBar;
+    NSMutableArray *_listContent;  //   本地通讯录数据
+    NSMutableArray *_filteredListContent;  // search result 数据
+    UISearchBar *ABsearchBar;
     UISearchDisplayController *ABsearchDisplayController;
 
 }
 
 @property (nonatomic, retain) id<AddressBookViewControllerDelegate> delegate;
 @property (nonatomic, retain) IBOutlet UITableView *tableView;
-@property (nonatomic, retain) IBOutlet UISearchBar *ABsearchBar;
 
 @property (nonatomic, copy) NSString *savedSearchTerm;
 @property (nonatomic) NSInteger savedScopeButtonIndex;
