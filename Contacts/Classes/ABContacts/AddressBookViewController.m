@@ -12,6 +12,7 @@
 #import "ChineseInclude.h"
 #import "PinYinForObjc.h"
 #import "Contacts.h"
+#import "ContactDetailViewController.h"
 
 @interface AddressBookViewController ()
 
@@ -178,17 +179,6 @@
 #pragma mark -
 #pragma mark UITableViewDataSource & UITableViewDelegate
 
-//  首字母 索引，title
-//- (NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView
-//{
-//    if (tableView == self.searchDisplayController.searchResultsTableView) {
-//        return nil;
-//    } else {
-//        return [[NSArray arrayWithObject:UITableViewIndexSearch] arrayByAddingObjectsFromArray:
-//                [[UILocalizedIndexedCollation currentCollation] sectionIndexTitles]];
-//    }
-//}
-
 - (NSInteger)tableView:(UITableView *)tableView sectionForSectionIndexTitle:(NSString *)title atIndex:(NSInteger)index
 {
     if (tableView == self.searchDisplayController.searchResultsTableView) {
@@ -250,82 +240,75 @@
     }
     
     ABAddressBook *addressBook = nil;
-    if (tableView == self.searchDisplayController.searchResultsTableView)
+    if (tableView == self.searchDisplayController.searchResultsTableView){
         addressBook = (ABAddressBook *)[_filteredListContent objectAtIndex:indexPath.row];
-    else
-        addressBook = (ABAddressBook *)[[_listContent objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
-    
-    if ([[addressBook.name stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] length] > 0) {
-        cell.textLabel.text = addressBook.name;
-    } else {
-        cell.textLabel.font = [UIFont italicSystemFontOfSize:cell.textLabel.font.pointSize];
-        cell.textLabel.text = @"No Name";
-    }
-    
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    [button setFrame:CGRectMake(30.0, 0.0, 40, 28)];
-    button.titleLabel.font = [UIFont systemFontOfSize:15.0f];
-    button.titleLabel.textAlignment = NSTextAlignmentCenter;
-    button.tag = indexPath.row;
-    [button setTitle:@"添加" forState:UIControlStateNormal];
+        
+        if ([[addressBook.name stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] length] > 0) {
+            cell.textLabel.text = addressBook.name;
+        } else {
+            cell.textLabel.font = [UIFont italicSystemFontOfSize:cell.textLabel.font.pointSize];
+            cell.textLabel.text = @"No Name";
+        }
+        
+        UIButton *button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        [button setFrame:CGRectMake(30.0, 0.0, 50, 28)];
+        button.titleLabel.font = [UIFont systemFontOfSize:15.0f];
+        button.titleLabel.textAlignment = NSTextAlignmentCenter;
+        button.tag = indexPath.row;
+        [button setTitle:@"添加" forState:UIControlStateNormal];
+        
+        [button addTarget:self action:@selector(searchAddButtonTapped:event:) forControlEvents:UIControlEventTouchUpInside];
+        
+        cell.accessoryView = button;
 
-    [button addTarget:self action:@selector(AddButtonTapped:event:) forControlEvents:UIControlEventTouchUpInside];
     
-    cell.accessoryView = button;
+    }
+    else{
+        addressBook = (ABAddressBook *)[[_listContent objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
+        
+        if ([[addressBook.name stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] length] > 0) {
+            cell.textLabel.text = addressBook.name;
+        } else {
+            cell.textLabel.font = [UIFont italicSystemFontOfSize:cell.textLabel.font.pointSize];
+            cell.textLabel.text = @"No Name";
+        }
+        
+        UIButton *button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        [button setFrame:CGRectMake(30.0, 0.0, 50, 28)];
+        button.titleLabel.font = [UIFont systemFontOfSize:15.0f];
+        button.titleLabel.textAlignment = NSTextAlignmentCenter;
+        button.tag = indexPath.row;
+        [button setTitle:@"添加" forState:UIControlStateNormal];
+        
+        [button addTarget:self action:@selector(normalAddButtonTapped:event:) forControlEvents:UIControlEventTouchUpInside];
+        
+        cell.accessoryView = button;
+
+    }
     
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    
+    ContactDetailViewController *contactdetail = [[ContactDetailViewController alloc] init];
     if (tableView == self.searchDisplayController.searchResultsTableView) {
-        [self tableView:self.searchDisplayController.searchResultsTableView accessoryButtonTappedForRowWithIndexPath:indexPath];
-        [self.searchDisplayController.searchResultsTableView deselectRowAtIndexPath:indexPath animated:YES];
+        contactdetail.contact = _filteredListContent[indexPath.row];
     }
     else {
-        [self tableView:self.tableView accessoryButtonTappedForRowWithIndexPath:indexPath];
-        [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+        contactdetail.contact = (Contacts *)[[_listContent objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
         
-        
-    
     }
+    [self.navigationController pushViewController:contactdetail animated:YES];
     
 }
 
-- (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath
-{
-    ABAddressBook *addressBook = nil;
-    
-    if (tableView == self.searchDisplayController.searchResultsTableView)
-        addressBook = (ABAddressBook*)[_filteredListContent objectAtIndex:indexPath.row];
-    else
-        addressBook = (ABAddressBook*)[[_listContent objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
-    
-    BOOL checked = !addressBook.rowSelected;
-    addressBook.rowSelected = checked;
-    
-    
-    UITableViewCell *cell =[self.tableView cellForRowAtIndexPath:indexPath];
-    UIButton *button = (UIButton *)cell.accessoryView;
-    [button setSelected:checked];
-    
-    if (tableView == self.searchDisplayController.searchResultsTableView)
-    {
-        [self.searchDisplayController.searchResultsTableView reloadData];
-    }
-}
 
-- (void)AddButtonTapped:(UIButton *)Btn event:(id)event
+- (void)normalAddButtonTapped:(id *)sender event:(id)event
 {
-    
-    ABAddressBook *addressbook = _listContent[Btn.tag];
-    //第一步注册通知
-    Contacts *newcontact = [[Contacts alloc] init];
-    
-    newcontact.name = addressbook.name;
-    newcontact.sectionNumber = addressbook.sectionNumber;
-    
-    [[NSNotificationCenter defaultCenter]postNotificationName:@"addcontactNotification" object:newcontact];
     
     NSSet *touches = [event allTouches];
     UITouch *touch = [touches anyObject];
@@ -334,36 +317,44 @@
     
     if (indexPath != nil)
     {
-        [self tableView:self.tableView accessoryButtonTappedForRowWithIndexPath:indexPath];
+        Contacts *newcontact  = [[_listContent objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
+        //第一步注册通知
+        
+        [[NSNotificationCenter defaultCenter]postNotificationName:@"addcontactNotification" object:newcontact];
+        
+        //[self tableView:self.tableView accessoryButtonTappedForRowWithIndexPath:indexPath];
+        UITableViewCell *cell =[self.tableView cellForRowAtIndexPath:indexPath];
+        UIButton *button = (UIButton *)cell.accessoryView;
+        [button setTitle:@"已添加" forState:UIControlStateNormal];
+
+    }
+    
+}
+
+- (void)searchAddButtonTapped:(id *)sender event:(id)event
+{
+    NSSet *touches = [event allTouches];
+    UITouch *touch = [touches anyObject];
+    CGPoint currentTouchPosition = [touch locationInView:self.searchDisplayController.searchResultsTableView];
+    NSIndexPath *indexPath = [self.searchDisplayController.searchResultsTableView indexPathForRowAtPoint: currentTouchPosition];
+    
+    if (indexPath != nil)
+    {
+        Contacts *newcontact  = [_filteredListContent objectAtIndex:indexPath.row];
+        //第一步注册通知
+        
+        [[NSNotificationCenter defaultCenter]postNotificationName:@"addcontactNotification" object:newcontact];
+        
+       // [self tableView:self.searchDisplayController.searchResultsTableView accessoryButtonTappedForRowWithIndexPath:indexPath];
+        UITableViewCell *cell =[self.searchDisplayController.searchResultsTableView cellForRowAtIndexPath:indexPath];
+        UIButton *button = (UIButton *)cell.accessoryView;
+        [button setTitle:@"已添加" forState:UIControlStateNormal];
     }
 }
 
 #pragma mark -
 #pragma mark Save action
 
-//- (IBAction)saveAction:(id)sender
-//{
-//    NSMutableArray *objects = [NSMutableArray new];
-//    for (NSArray *section in _listContent) {
-//        for (AddressBook *addressBook in section)
-//        {
-//            if (addressBook.rowSelected)
-//                [objects addObject:addressBook];
-//        }
-//    }
-//    
-//    if ([self.delegate respondsToSelector:@selector(contactsMultiPickerController:didFinishPickingDataWithInfo:)])
-//        [self.delegate contactsMultiPickerController:self didFinishPickingDataWithInfo:objects];
-//    
-//}
-//
-//- (IBAction)dismissAction:(id)sender
-//{
-//    if ([self.delegate respondsToSelector:@selector(contactsMultiPickerControllerDidCancel:)])
-//        [self.delegate contactsMultiPickerControllerDidCancel:self];
-//    else
-//        [self dismissViewControllerAnimated:YES completion:nil];
-//}
 
 //#pragma UISearchDisplayDelegate
 

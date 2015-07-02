@@ -18,7 +18,7 @@
 @property (retain, nonatomic) IBOutlet UILabel *nameLabel;
 @property (retain, nonatomic) IBOutlet UILabel *addressLabel;
 @property (retain, nonatomic) IBOutlet UIImage *headImage;
-@property (retain, nonatomic) IBOutlet UIButton *addBtn;
+
 
 @property (assign, nonatomic) id<RecomendsCellDelegate> delegate;
 

@@ -133,9 +133,14 @@
         
         cell.nameLabel.text = nametext;
         cell.addressLabel.text = addresstext;
-        cell.addBtn.tag = indexPath.row;
-        [cell.addBtn addTarget:self action:@selector(searchAddbtnClick:) forControlEvents:UIControlEventTouchUpInside];
-        
+        UIButton *addbutton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        [addbutton setFrame:CGRectMake(30.0, 0.0, 50, 28)];
+        addbutton.titleLabel.font = [UIFont systemFontOfSize:15.0f];
+        addbutton.titleLabel.textAlignment = NSTextAlignmentCenter;
+        [addbutton setTitle:@"添加" forState:UIControlStateNormal];
+        addbutton.tag = indexPath.row;
+        [addbutton addTarget:self action:@selector(searchAddbtnClick:event:) forControlEvents:UIControlEventTouchUpInside];
+        cell.accessoryView = addbutton;
         return cell;
         
     }
@@ -170,30 +175,64 @@
         cell.delegate = self;
         cell.nameLabel.text = nametext;
         cell.addressLabel.text = addresstext;
-        cell.addBtn.tag = indexPath.row;
-        [cell.addBtn addTarget:self action:@selector(normalAddbtnClick:) forControlEvents:UIControlEventTouchUpInside];
+        UIButton *addbutton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        [addbutton setFrame:CGRectMake(30.0, 0.0, 50, 28)];
+        addbutton.titleLabel.font = [UIFont systemFontOfSize:15.0f];
+        addbutton.titleLabel.textAlignment = NSTextAlignmentCenter;
+        [addbutton setTitle:@"添加" forState:UIControlStateNormal];
+        addbutton.tag = indexPath.row;
+        [addbutton addTarget:self action:@selector(normalAddbtnClick:event:) forControlEvents:UIControlEventTouchUpInside];
+        cell.accessoryView = addbutton;
         return cell;
     }
        
 }
 
 // cell上的 添加课程按钮, 响应事件,  搜索结果中的cell
-- (void)searchAddbtnClick:(UIButton *)Btn
+- (void)searchAddbtnClick:(id *)sender event:(id)event
 {
-    Contacts *newcontact = newsearchResults[Btn.tag];
-    //第一步注册通知
-    [[NSNotificationCenter defaultCenter]postNotificationName:@"addcontactNotification" object:newcontact];
+    NSSet *touches = [event allTouches];
+    UITouch *touch = [touches anyObject];
+    CGPoint currentTouchPosition = [touch locationInView:self.searchDisplayController.searchResultsTableView];
+    NSIndexPath *indexPath = [self.searchDisplayController.searchResultsTableView indexPathForRowAtPoint: currentTouchPosition];
+    
+    if (indexPath != nil)
+    {
+        Contacts *newcontact = [newsearchResults objectAtIndex:indexPath.row];
+        
+        //第一步注册通知
+        [[NSNotificationCenter defaultCenter]postNotificationName:@"addcontactNotification" object:newcontact];
+        
+       // [self tableView:self.recomended accessoryButtonTappedForRowWithIndexPath:indexPath];
+        UITableViewCell *cell =[self.searchDisplayController.searchResultsTableView cellForRowAtIndexPath:indexPath];
+        UIButton *button = (UIButton *)cell.accessoryView;
+        [button setTitle:@"已添加" forState:UIControlStateNormal];
+    }
     
 }
 
 // 添加课程按钮, 响应事件， table中的cell上的button
-- (void)normalAddbtnClick:(UIButton *)Btn
+- (void)normalAddbtnClick:(id *)sender event:(id)event
 {
-    Contacts *newcontact = _recomendsArray[Btn.tag];
     
-    //第一步注册通知
-    [[NSNotificationCenter defaultCenter]postNotificationName:@"addcontactNotification" object:newcontact];
+    NSSet *touches = [event allTouches];
+    UITouch *touch = [touches anyObject];
+    CGPoint currentTouchPosition = [touch locationInView:self.recomended];
+    NSIndexPath *indexPath = [self.recomended indexPathForRowAtPoint: currentTouchPosition];
     
+    if (indexPath != nil)
+    {
+        Contacts *newcontact = [_recomendsArray objectAtIndex:indexPath.row];
+        
+        //第一步注册通知
+        [[NSNotificationCenter defaultCenter]postNotificationName:@"addcontactNotification" object:newcontact];
+        
+        UITableViewCell *cell =[self.recomended cellForRowAtIndexPath:indexPath];
+        UIButton *button = (UIButton *)cell.accessoryView;
+        [button setTitle:@"已添加" forState:UIControlStateNormal];
+        
+    }
+
 }
 
 
@@ -312,28 +351,6 @@
     }
     
 }
-
-
-
-//// searchbar 点击上浮，完毕复原
-//-(BOOL)searchBarShouldBeginEditing:(UISearchBar *)searchBar
-//{
-//    //准备搜索前，把上面调整的TableView调整回全屏幕的状态
-//    [UIView animateWithDuration:1.0 animations:^{
-//        self.view.frame = CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height);
-//        
-//    }];
-//    return YES;
-//}
-//-(BOOL)searchBarShouldEndEditing:(UISearchBar *)searchBar
-//{
-//    //搜索结束后，恢复原状
-//    [UIView animateWithDuration:1.0 animations:^{
-//        self.view.frame = CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height);
-//    }];
-//    return YES;
-//}
-
 
 
 

@@ -28,16 +28,9 @@
                         <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                         <nil key="highlightedColor"/>
                     </label>
-                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Vpq-dU-tvt">
-                        <rect key="frame" x="270" y="7" width="30" height="30"/>
-                        <state key="normal" title="添加">
-                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                        </state>
-                    </button>
                 </subviews>
             </tableViewCellContentView>
             <connections>
-                <outlet property="addBtn" destination="Vpq-dU-tvt" id="1Wi-rL-3ur"/>
                 <outlet property="addressLabel" destination="4vh-SN-vDV" id="yhu-Xq-ft7"/>
                 <outlet property="nameLabel" destination="471-c9-Ng9" id="mOt-Oj-JUd"/>
             </connections>

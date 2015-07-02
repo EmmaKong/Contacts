@@ -165,7 +165,6 @@
     NSString *name = newcontact.name;
     
     NSLog(@"添加联系人%@",name);
-    
     [self.contactArraytemp addObject:newcontact];
     
     // 数据更新
@@ -322,7 +321,6 @@
     else {
         
         contactdetail.contact = (Contacts *)[[self.dataSource objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
-        
         
     }
     
